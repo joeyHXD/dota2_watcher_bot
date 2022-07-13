@@ -59,7 +59,7 @@ for i in PLAYER_LIST:
             else:
                 group_dict[gid] = [temp_player]
 
-@sv.scheduled_job('interval', seconds=20)
+@sv.scheduled_job('interval', seconds=60)
 async def update():
     print('updating dota2')
     update_list = []
