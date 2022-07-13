@@ -116,7 +116,7 @@ async def add_dota2_player(bot, ev):
         else:
             group_dict[gid] = [temp_player]
         item_dict[str(short_steamID)] = [[int(gid), nickname]]
-        reply="添加成功-路线1"
+        reply="添加成功"
     else:
         if group_dict.get(gid, None):
             for i in group_dict[gid]:
@@ -130,9 +130,9 @@ async def add_dota2_player(bot, ev):
             if not reply:
                 group_dict[gid].append(temp_player)
                 item_dict[str(short_steamID)].append([int(gid), nickname])
-                reply="添加成功-路线2"
+                reply="添加成功"
         else:
-            reply="添加成功-路线3"
+            reply="添加成功"
             group_dict[gid] = [temp_player]
             item_dict[str(short_steamID)].append([int(gid), nickname])
     temp_player = player(short_steamID=short_steamID,
