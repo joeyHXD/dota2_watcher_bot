@@ -11,7 +11,7 @@ YYGQ的文来自于[dota2_watcher](https://github.com/unilink233/dota2_watcher)
 ## 安装指南
 1.clone本插件： 在 HoshinoBot\hoshino\modules 目录下使用以下命令拉取本项目
 
-git clone https://github.com/InSnocent/Daily_News.git
+'''git clone https://github.com/joeyHXD/dota2_watcher_bot.git'''
 
 3.启用模块
 
