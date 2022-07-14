@@ -1,12 +1,20 @@
 # DOTA2的处刑BOT,hoshino插件版
 魔改自： https://github.com/greenhaha/dota2_csgo_watcher_bot
 
+在此之上添加了直接从QQ群添加刀塔玩家的功能
+
+以及对每个QQ群分别播放各自的战绩
+
 ## 介绍
 在群友打完一把游戏后, bot会向群里更新这局比赛的数据
 
 DOTA2的数据来自于V社的官方API, 每日请求数限制100,000次
 
 YYGQ的文来自于[dota2_watcher](https://github.com/unilink233/dota2_watcher)
+
+这是一个hoshino机器人的插件，需要添加到hoshino本体里才能运行
+
+搭建hoshino机器人请参考[Hoshino开源Project](https://github.com/Ice-Cirno/HoshinoBot)
 
 ## 安装指南
 1.clone本插件： 在 HoshinoBot\hoshino\modules 目录下使用以下命令拉取本项目
@@ -25,7 +33,8 @@ YYGQ的文来自于[dota2_watcher](https://github.com/unilink233/dota2_watcher)
 
 如： 添加刀塔玩家 萧瑟先辈 898754153
 
-- 走过路过点个star吧
-
 ## 运行效果
 具体可以看 https://github.com/greenhaha/dota2_csgo_watcher_bot
+
+## 后续计划
+添加删除玩家功能
