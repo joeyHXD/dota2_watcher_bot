@@ -9,6 +9,10 @@ import time
 # http://steamcommunity.com/dev/apikey
 api_key = ""
 
+#使用代理服务器发起请求
+#proxies={'代理类型':'ip:port'}
+proxies = { "http": "", "https": ""}
+
 # 异常处理
 class DOTA2HTTPError(Exception):
     pass
@@ -26,7 +30,7 @@ def get_last_match_id_by_short_steamID(short_steamID):
     # get match_id
     url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v001/?key={}' \
           '&account_id={}&matches_requested=1'.format(api_key, short_steamID)
-    response = requests.get(url)
+    response = requests.get(url,proxies=proxies)
     if response.status_code >= 400:
         if response.status_code == 401:
             raise DOTA2HTTPError("Unauthorized request 401. Verify API key.")
@@ -48,7 +52,7 @@ def get_match_detail_info(match_id):
     # get match detail
     url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/' \
           '?key={}&match_id={}'.format(api_key, match_id)
-    response = requests.get(url)
+    response = requests.get(url,proxies=proxies)
     if response.status_code >= 400:
         if response.status_code == 401:
             raise DOTA2HTTPError("Unauthorized request 401. Verify API key.")
