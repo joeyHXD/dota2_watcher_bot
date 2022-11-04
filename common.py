@@ -36,9 +36,13 @@ def get_message_DOTA2(players):
     msg = []
     for match_id in result:
         if len(result[match_id]) > 1:
-            msg.append(DOTA2.generate_party_message(match_id=match_id, player_list=result[match_id]))
+            txt = DOTA2.generate_party_message(match_id=match_id, player_list=result[match_id]);
+            if (txt != 0):
+                msg.append(txt)
         elif len(result[match_id]) == 1:
-            msg.append(DOTA2.generate_solo_message(match_id=match_id, player_obj=result[match_id][0]))
+            txt = DOTA2.generate_solo_message(match_id=match_id, player_obj=result[match_id][0])
+            if (txt != 0):
+                msg.append(txt)
     return msg, result
 
 def update_group_DOTA2_match_ID(update):
