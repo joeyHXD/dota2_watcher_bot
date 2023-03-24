@@ -1,91 +1,124 @@
 import time
 import json
-from .common import get_message_DOTA2, steam_id_convert_32_to_64, update_group_DOTA2_match_ID
-from .player import PLAYER_LIST, player
-from .DBOper import is_player_stored, insert_info, update_DOTA2_match_ID
+from .player import Player
 from . import DOTA2
-from hoshino import Service, priv
+from hoshino import Service, priv, aiorequests
 
-sv = Service('dota-poller', use_priv=priv.SUPERUSER, 
-            enable_on_default=False, manage_priv=priv.SUPERUSER, visible=True,
-            help_='添加刀塔玩家 [玩家昵称] [steam的id]\n如：添加刀塔玩家 萧瑟先辈 898754153\n')
-fn = "./hoshino/modules/dota2_watcher_bot/"
-item_dict = json.load(open(fn + "list.json", "r",encoding='utf-8',errors='ignore'))
+sv = Service(
+            'dota-poller2',
+            use_priv=priv.SUPERUSER,
+            enable_on_default=False,
+            manage_priv=priv.SUPERUSER,
+            visible=True,
+            help_='添加刀塔玩家 [玩家昵称] [steam的id]\n如：添加刀塔玩家 萧瑟先辈 898754153\n'
+    )
+
+# 这里替换成你自己的API
+# http://steamcommunity.com/dev/apikey
+api_key = ""
+proxies = {"http": "", "https": ""}
+class DOTA2HTTPError(Exception):
+    pass
+
+def steam_id_convert_32_to_64(short_steamID):
+    return short_steamID + 76561197960265728
 bot = sv.bot
+data = {}
+fn = "./hoshino/modules/dota2_watcher_bot2/playerInfo.json"
 
-if len(PLAYER_LIST) < len(item_dict):
-    for short_steamID, info in item_dict.items():
-        short_steamID = int(short_steamID)
-        long_steamID = steam_id_convert_32_to_64(short_steamID)
-        try:
-            last_DOTA2_match_ID = DOTA2.get_last_match_id_by_short_steamID(short_steamID)
-        except DOTA2.DOTA2HTTPError:
-            last_DOTA2_match_ID = "-1"
-        # 如果数据库中没有这个人的信息, 则进行数据库插入
-        if not is_player_stored(short_steamID):
-            # 插入数据库
-            insert_info(short_steamID, long_steamID, last_DOTA2_match_ID)
-        # 如果有这个人的信息则更新其最新的比赛信息
-        else:
-            update_DOTA2_match_ID(short_steamID, last_DOTA2_match_ID)
-        # 新建一个玩家对象, 放入玩家列表
-        temp_player = player(short_steamID=short_steamID,
-                             long_steamID=long_steamID,
-                             last_DOTA2_match_ID=last_DOTA2_match_ID)
-        PLAYER_LIST.append(temp_player)
-group_dict = {}
-# format of group_dict
-# {
-    # gid: [
-        # player1,
-        # player2
-    # ]
-# }
-print('dota_test')
-for i in PLAYER_LIST:
-    steam_id = str(i.short_steamID)
-    #print(steam_id, item_dict.get(steam_id, None))
-    if item_dict.get(steam_id, None):
-        for group_nickname in item_dict[steam_id]:
-            gid, nickname = group_nickname
-            gid = str(gid)
-            #print("gid", gid, nickname)
-            temp_player = player(short_steamID = i.short_steamID,
-                             long_steamID = i.long_steamID,
-                             last_DOTA2_match_ID = i.last_DOTA2_match_ID)
-            temp_player.nickname = nickname
-            if group_dict.get(gid, None):
-                group_dict[gid].append(temp_player)
-            else:
-                group_dict[gid] = [temp_player]
+with open(fn) as file:
+    tmp = json.load(file)
+for gid, player_list in tmp.items():
+    data[gid] = []
+    for info in player_list:
+        player = Player()
+        player.load_dict(info)
+        data[gid].append(player)
+
+def save_to_json():
+    tmp = {}
+    for gid, player_list in data.items():
+        tmp[gid] = []
+        for player in player_list:
+            tmp[gid].append(player.to_dict())
+    with open(fn, "w") as file:
+        json.dump(tmp, file, indent=4)
 
 @sv.scheduled_job('interval', seconds=60)
 async def update():
-    print('updating dota2')
-    update_list = []
-    check_update = False
-    for gid,players in group_dict.items():
-        gid = int(gid)
+    print("updating")
+    for gid, player_list in data.items():
         if not sv.check_enabled(gid):
-            break
-        msg,new_update = get_message_DOTA2(players)
-        for match_id, new_players in new_update.items():
-            for player in new_players:
-                update_list.append([player, match_id])
-        if (msg!= None):
-            check_update = True
-            if len(msg) == 1:
-                a = 1
-                print(msg[0])
-                await bot.send_group_msg(group_id=gid, message=msg[0])
-            else:
-                for match_result in msg:
-                    a = 1
-                    print(match_result)
-                    await bot.send_group_msg(group_id=gid, message=match_result)
-    if check_update:
-        update_group_DOTA2_match_ID(update_list)
-        
+            continue
+        result = {}
+        """
+        result = {
+            match_id_1 : [Player1, Player2]
+            match_id_2 : [Player3]
+        }
+        """
+        for player in player_list:
+            short_steamID = player.short_steamID
+            try:
+                url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v001/?key={}' \
+                  '&account_id={}&matches_requested=1'.format(api_key, short_steamID)
+                try:
+                    response = await aiorequests.get(url, timeout=20, proxies=proxies)
+                except Exception as e:
+                    print("20秒内无法连接到网站，建议检查网络，或者尝试使用代理服务器")
+                    raise e
+                prompt_error(response, url)
+                match = await response.json()
+                try:
+                    match_id = match["result"]["matches"][0]["match_id"]
+                except Exception as e:
+                    print(e)
+                if match_id != player.last_DOTA2_match_ID:
+                    if match_id not in result:
+                        result[match_id] = [player]
+                    else:
+                        result[match_id].append(player)
+                    player.last_DOTA2_match_ID = match_id
+            except DOTA2HTTPError:
+                continue
+        messages = []
+        for match_id, player_list in result.items():
+            try:
+                url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/' \
+                  '?key={}&match_id={}'.format(api_key, match_id)
+                try:
+                    response = await aiorequests.get(url, timeout=20, proxies=proxies)
+                except Exception as e:
+                    print("20秒内无法连接到网站，建议检查网络，或者尝试使用代理服务器")
+                    raise e
+                prompt_error(response, url)
+                match = await response.json()
+                try:
+                    match_info = match["result"]
+                except KeyError:
+                    raise DOTA2HTTPError("Response Error: Key Error")
+                except IndexError:
+                    raise DOTA2HTTPError("Response Error: Index Error")
+            except DOTA2HTTPError:
+                raise DOTA2HTTPError("DOTA2开黑战报生成失败")
+            txt = DOTA2.generate_message(match_info, player_list)
+            messages.append(txt)
+        if messages:
+            data[gid] = player_list
+            for msg in messages:
+                print(msg)
+                await bot.send_group_msg(group_id=gid, message=msg)
+    save_to_json()
+    print("done")
+
+def prompt_error(response, url):
+    if response.status_code >= 400:
+        if response.status_code == 401:
+            raise DOTA2HTTPError("Unauthorized request 401. Verify API key.")
+        if response.status_code == 503:
+            raise DOTA2HTTPError("The server is busy or you exceeded limits. Please wait 30s and try again.")
+        raise DOTA2HTTPError("Failed to retrieve data: %s. URL: %s" % (response.status_code, url))
+
 @sv.on_prefix('添加刀塔玩家')
 async def add_dota2_player(bot, ev):
     cmd = ev.raw_message
@@ -96,50 +129,21 @@ async def add_dota2_player(bot, ev):
     nickname = content[1]
     short_steamID = int(content[2])
     long_steamID = steam_id_convert_32_to_64(short_steamID)
-    try:
-        last_DOTA2_match_ID = DOTA2.get_last_match_id_by_short_steamID(short_steamID)
-    except DOTA2.DOTA2HTTPError:
-        last_DOTA2_match_ID = "-1"
-    # 如果数据库中没有这个人的信息, 则进行数据库插入
     gid = str(ev['group_id'])
     # 新建一个玩家对象, 放入玩家列表
-    temp_player = player(short_steamID=short_steamID,
-                         long_steamID=long_steamID,
-                         last_DOTA2_match_ID=last_DOTA2_match_ID)
+    temp_player = Player(short_steamID=short_steamID,
+                         nickname=nickname,
+                         last_DOTA2_match_ID=0)
     temp_player.nickname = nickname
-    reply = '似乎出现了意想不到的事情'
-    if not is_player_stored(short_steamID):
-        # 插入数据库
-        insert_info(short_steamID, long_steamID, last_DOTA2_match_ID)
-        if group_dict.get(gid, None):
-            group_dict[gid].append(temp_player)
-        else:
-            group_dict[gid] = [temp_player]
-        item_dict[str(short_steamID)] = [[int(gid), nickname]]
-        reply="添加成功"
+    for player in data[gid]:
+        if player.short_steamID == short_steamID:
+            player.nickname = nickname
+            is_new_player = False
+            reply = "玩家已存在，更新昵称"
+            break
     else:
-        if group_dict.get(gid, None):
-            for i in group_dict[gid]:
-                if i.short_steamID == short_steamID:
-                    for info in item_dict[str(short_steamID)]:
-                        if info[0] == int(gid):
-                            info[1] = nickname
-                    reply = f"已将你的昵称从{i.nickname}更新为{nickname}"
-                    i.nickname = nickname
-                    break
-            if not reply:
-                group_dict[gid].append(temp_player)
-                item_dict[str(short_steamID)].append([int(gid), nickname])
-                reply="添加成功"
-        else:
-            reply="添加成功"
-            group_dict[gid] = [temp_player]
-            item_dict[str(short_steamID)].append([int(gid), nickname])
-    temp_player = player(short_steamID=short_steamID,
-                     long_steamID=long_steamID,
-                     last_DOTA2_match_ID=last_DOTA2_match_ID)
-    PLAYER_LIST.append(temp_player)
-    with open(fn + "list.json", "w",encoding='utf-8') as config_file:
-        json.dump(item_dict, config_file, ensure_ascii=False, indent=4)
+        reply = "玩家添加成功"
+        data[gid].append(temp_player)
+    save_to_json()
     await bot.send(ev, reply)
     

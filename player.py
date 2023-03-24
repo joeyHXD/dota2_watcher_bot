@@ -1,28 +1,32 @@
-class player:
-    # 基本属性
-    short_steamID = 0
-    long_steamID = 0
-    nickname = ''
-    DOTA2_score = ''
-    last_DOTA2_match_ID = 0
-
-    # 玩家在最新的一场比赛中的数据
-    # dota2专属
-    dota2_kill = 0
-    dota2_death = 0
-    dota2_assist = 0
-    # 1为天辉, 2为夜魇
-    dota2_team = 1
-    kda = 0
-    gpm = 0
-    xpm = 0
-    hero = ''
-    last_hit = 0
-    damage = 0
-
-    def __init__(self, short_steamID, long_steamID, last_DOTA2_match_ID):
+class Player:
+    def __init__(self, short_steamID = "", nickname = "", last_DOTA2_match_ID = ""):
         self.short_steamID = short_steamID
-        self.long_steamID = long_steamID
+        self.nickname = nickname
         self.last_DOTA2_match_ID = last_DOTA2_match_ID
+        self.stats = {}
 
-PLAYER_LIST = []
+    def to_dict(self):
+        output = {}
+        output["short_steamID"] = self.short_steamID
+        output["nickname"] = self.nickname
+        output["last_DOTA2_match_ID"] = self.last_DOTA2_match_ID
+        return output
+
+    def load_dict(self, d):
+        self.short_steamID = d["short_steamID"]
+        self.nickname = d["nickname"]
+        self.last_DOTA2_match_ID = d["last_DOTA2_match_ID"]
+
+    def load_player_info(self, player_game_info):
+        tmp["kill"] = player_game_info['kills']
+        tmp["death"] = player_game_info['deaths']
+        tmp["assist"] = player_game_info['assists']
+        tmp["kda"] = (tmp["kill"] +  tmp["assist"]) / max(tmp["death"], 1)
+
+        tmp["dota2_team"] = get_team_by_slot(player_game_info['player_slot'])
+        tmp["hero"] = player_game_info['hero_id']
+        tmp["last_hit"] = player_game_info['last_hits']
+        tmp["damage"] = player_game_info['hero_damage']
+        tmp["gpm"] = player_game_info['gold_per_min']
+        tmp["xpm"] = player_game_info['xp_per_min']
+        self.stats = tmp
