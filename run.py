@@ -24,7 +24,7 @@ def steam_id_convert_32_to_64(short_steamID):
     return short_steamID + 76561197960265728
 bot = sv.bot
 data = {}
-fn = "./hoshino/modules/dota2_watcher_bot2/playerInfo.json"
+fn = "./hoshino/modules/dota2_watcher_bot/playerInfo.json"
 
 with open(fn) as file:
     tmp = json.load(file)
@@ -135,6 +135,8 @@ async def add_dota2_player(bot, ev):
                          nickname=nickname,
                          last_DOTA2_match_ID=0)
     temp_player.nickname = nickname
+    if gid not in data:
+        data[gid] = []
     for player in data[gid]:
         if player.short_steamID == short_steamID:
             player.nickname = nickname
