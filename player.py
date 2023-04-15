@@ -18,12 +18,13 @@ class Player:
         self.last_DOTA2_match_ID = d["last_DOTA2_match_ID"]
 
     def load_player_info(self, player_game_info):
+        tmp = {}
         tmp["kill"] = player_game_info['kills']
         tmp["death"] = player_game_info['deaths']
         tmp["assist"] = player_game_info['assists']
         tmp["kda"] = (tmp["kill"] +  tmp["assist"]) / max(tmp["death"], 1)
 
-        tmp["dota2_team"] = get_team_by_slot(player_game_info['player_slot'])
+        tmp["dota2_team"] = player_game_info['player_slot']
         tmp["hero"] = player_game_info['hero_id']
         tmp["last_hit"] = player_game_info['last_hits']
         tmp["damage"] = player_game_info['hero_damage']

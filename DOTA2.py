@@ -22,12 +22,16 @@ def generate_message(match_info, player_list):
     lobby = LOBBY[lobby_id] if lobby_id in LOBBY else '未知'
 
     # 更新玩家对象的比赛信息
+    new_list = []
     for player in player_list:
         for player_game_info in match_info['players']:
             if player.short_steamID == player_game_info['account_id']:
                 player.load_player_info(player_game_info)
+                new_list.append(player)
                 break
-
+        else:
+            print(f"{player.nickname}的数据无法获取，可能已被屏蔽")
+    player_list = new_list
     # 队伍信息
     team = player_list[0].stats["dota2_team"]
     teammates_info = list(filter(lambda x: get_team_by_slot(x['player_slot']) == team, match_info['players']))
@@ -46,6 +50,7 @@ def generate_message(match_info, player_list):
         nicknames = ', '.join([player.nickname for player in player_list[:-1]])
         nicknames = '和'.join([nicknames, player_list[-1].nickname])
 
+    # print(player.nickname, player.stats)
     top_kda = max(player.stats["kda"] for player in player_list)
 
     if (win and top_kda > 10) or (not win and top_kda > 6):
