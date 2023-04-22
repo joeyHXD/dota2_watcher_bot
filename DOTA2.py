@@ -2,13 +2,6 @@ from .DOTA2_dicts import *
 import random
 import time
 
-# 根据slot判断队伍, 返回1为天辉, 2为夜魇
-def get_team_by_slot(slot):
-    if slot < 100:
-        return 1
-    else:
-        return 2
-
 # 接收某局比赛的玩家列表, 生成开黑战报
 # 参数为玩家对象列表和比赛ID
 def generate_message(match_info, player_list):
@@ -34,15 +27,15 @@ def generate_message(match_info, player_list):
     player_list = new_list
     # 队伍信息
     team = player_list[0].stats["dota2_team"]
-    teammates_info = list(filter(lambda x: get_team_by_slot(x['player_slot']) == team, match_info['players']))
+    teammates_info = list(filter(lambda x: x["team_number"] == team, match_info['players']))
     team_damage = sum([player["hero_damage"] for player in teammates_info])
     team_kills = sum([player["kills"] for player in teammates_info])
     team_deaths = sum([player["deaths"] for player in teammates_info])
 
     win = False
-    if match_info['radiant_win'] and team == 1:
+    if match_info['radiant_win'] and team == 0:
         win = True
-    elif not match_info['radiant_win'] and team == 2:
+    elif not match_info['radiant_win'] and team == 1:
         win = True
     if len(player_list) == 1:
         nicknames = player_list[0].nickname

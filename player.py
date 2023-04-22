@@ -24,7 +24,7 @@ class Player:
         tmp["assist"] = player_game_info['assists']
         tmp["kda"] = (tmp["kill"] +  tmp["assist"]) / max(tmp["death"], 1)
 
-        tmp["dota2_team"] = player_game_info['player_slot']
+        tmp["dota2_team"] = player_game_info['team_number']
         tmp["hero"] = player_game_info['hero_id']
         tmp["last_hit"] = player_game_info['last_hits']
         tmp["damage"] = player_game_info['hero_damage']
