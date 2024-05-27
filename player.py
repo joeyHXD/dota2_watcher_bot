@@ -33,4 +33,5 @@ class Player:
         tmp["damage"] = player_game_info['hero_damage']
         tmp["gpm"] = player_game_info['gold_per_min']
         tmp["xpm"] = player_game_info['xp_per_min']
+        tmp["benchmarks"] = player_game_info.get('benchmarks', None)
         self.stats = tmp

@@ -86,17 +86,17 @@ def generate_message(match_info, player_list):
 
     return(print_str)
 
-def check_performance(match_info, player_list):
+def check_performance(player_list):
     # 验证战绩为正面还是负面
 
-    benchmark = match_info["players"].get("benchmarks", None)
+    benchmark = player_list[0].stats["benchmarks"]
 
     if benchmark:
         # 使用openDota的benchmark
         total_avg_pct = 0
         # Extract the benchmark scores compared to average performance on the hero
         for player in player_list:
-            benchmarks = match_info["players"]["benchmarks"]
+            benchmarks = player.stats["benchmarks"]
             # pct is between 0 and 1
             benchmark_pcts = [value["raw"] for value in benchmarks.values()]
             average_pcts = sum(benchmark_pcts) / len(benchmark_pcts)
