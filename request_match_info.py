@@ -3,6 +3,7 @@ from .utils import (
     DOTA2HTTPError,
     prompt_error
 )
+from hoshino import aiorequests
 
 # 报错请检查是否配置了config.py
 api_key = config.api_key

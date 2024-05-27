@@ -1,7 +1,6 @@
 import json
 import os
 from .player import Player
-from hoshino import aiorequests
 
 class DOTA2HTTPError(Exception):
     pass
