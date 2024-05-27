@@ -21,7 +21,8 @@ def generate_message(match_info, player_list):
     new_list = []
     for player in player_list:
         for player_game_info in match_info['players']:
-            if player.short_steamID == player_game_info['account_id']:
+            curr_id = player_game_info.get('account_id', 0)
+            if player.short_steamID == curr_id:
                 player.load_player_info(player_game_info)
                 new_list.append(player)
                 break
