@@ -47,7 +47,7 @@ def generate_message(match_info, player_list):
         nicknames = ', '.join([player.nickname for player in player_list[:-1]])
         nicknames = '和'.join([nicknames, player_list[-1].nickname])
 
-    postive = check_performance(match_info, player_list)
+    postive = check_performance(player_list)
 
     print_str = ''
     if win and postive:
