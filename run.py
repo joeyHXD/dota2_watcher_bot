@@ -148,7 +148,7 @@ async def close_broadcast(bot, ev):
     else:
         # 单个关闭
         for player in data[gid]:
-            if player.name == player_name:
+            if player.nickname == player_name:
                 player.display_recent_match = False
                 await bot.finish(ev, f"已关闭{player_name}的播报")
         await bot.finish(ev, "未找到该玩家")
@@ -167,7 +167,7 @@ async def open_broadcast(bot, ev):
     else:
         # 单个开启
         for player in data[gid]:
-            if player.name == player_name:
+            if player.nickname == player_name:
                 player.display_recent_match = True
                 await bot.finish(ev, f"已开启{player_name}的播报")
         await bot.finish(ev, "未找到该玩家")
