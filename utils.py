@@ -7,7 +7,6 @@ class DOTA2HTTPError(Exception):
 
 # 加载配置文件
 config_path = "./hoshino/modules/dota2_watcher_bot/config.py"
-config = Config(config_path)
 
 class Config:
     def __init__(self, config_path):
@@ -61,6 +60,8 @@ class Config:
     def benchmark_threshold(self):
         return self._benchmark_threshold
 
+config = Config(config_path)
+
 def prompt_error(response, url):
     if response.status_code >= 400:
         if response.status_code == 401:
@@ -78,13 +79,13 @@ def load_from_json():
     """
     data = {}
 
-    if not os.path.exists(player_info_file_path):
+    if not os.path.exists(config.player_info_file_path):
         # Create an empty playerInfo.json if it doesn't exist
-        with open(player_info_file_path, 'w', encoding='utf-8') as file:
+        with open(config.player_info_file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file)
 
     # Open and read the file
-    with open(player_info_file_path, 'r', encoding='utf-8') as file:
+    with open(config.player_info_file_path, 'r', encoding='utf-8') as file:
         tmp = json.load(file)
 
     # 从json文件中读取数据，转换成Player对象
@@ -105,5 +106,5 @@ def save_to_json(data):
         for player in player_list:
             tmp[gid].append(player.to_dict())
 
-    with open(player_info_file_path, "w", encoding="utf-8") as file:
+    with open(config.player_info_file_path, "w", encoding="utf-8") as file:
         json.dump(tmp, file, indent=4, ensure_ascii=False)

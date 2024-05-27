@@ -23,6 +23,7 @@ openDota免费版每日请求数限制2,000次，不需要API key
     ```
 2. 在 `HoshinoBot\hoshino\config\bot.py` 文件的 `MODULES_ON` 加入 `dota2_watcher_bot,`
 3. 将`default_config.py`复制并重命名为`config.py`
+    - `cp default_config.py config.py`
 4. 在 http://steamcommunity.com/dev/apikey 申请你的steam API key, 修改`config.py`中的`api_key`
 5. 同样在`config.py`中修改`proxies`为你的代理地址
 6. 然后重启 HoshinoBot，并在想要使用的QQ群里输入指令 `启用 dota-poller2` 或者 `enable dota-poller2`
