@@ -1,6 +1,9 @@
 from .DOTA2_dicts import *
 import random
 import time
+from .utils import config
+# 报错请检查是否配置了config.py
+benchmark_threshold = config.benchmark_threshold
 
 # 接收某局比赛的玩家列表, 生成开黑战报
 # 参数为玩家对象列表和比赛ID
@@ -43,15 +46,7 @@ def generate_message(match_info, player_list):
         nicknames = ', '.join([player.nickname for player in player_list[:-1]])
         nicknames = '和'.join([nicknames, player_list[-1].nickname])
 
-    # print(player.nickname, player.stats)
-    top_kda = max(player.stats["kda"] for player in player_list)
-
-    if (win and top_kda > 10) or (not win and top_kda > 6):
-        postive = True
-    elif (win and top_kda < 4) or (not win and top_kda < 1):
-        postive = False
-    else:
-        postive = (random.randint(0, 1) == 1)
+    postive = check_performance(match_info, player_list)
 
     print_str = ''
     if win and postive:
@@ -89,3 +84,36 @@ def generate_message(match_info, player_list):
     # print_str += "战绩详情: https://cn.dotabuff.com/matches/{}".format(match_id)
 
     return(print_str)
+
+def check_performance(match_info, player_list):
+    # 验证战绩为正面还是负面
+
+    benchmark = match_info["players"].get("benchmarks", None)
+
+    if benchmark:
+        # 使用openDota的benchmark
+        total_avg_pct = 0
+        # Extract the benchmark scores compared to average performance on the hero
+        for player in player_list:
+            benchmarks = match_info["players"]["benchmarks"]
+            # pct is between 0 and 1
+            benchmark_pcts = [value["raw"] for value in benchmarks.values()]
+            average_pcts = sum(benchmark_pcts) / len(benchmark_pcts)
+            total_avg_pct += average_pcts
+        if total_avg_pct / len(player_list) > benchmark_threshold:
+            postive = True
+        else:
+            postive = False
+    else:
+        # 使用普通的kda判断，steam API无法获取benchmark，openDota也可以用这个
+        top_kda = max(player.stats["kda"] for player in player_list)
+
+        if (win and top_kda > 8) or (not win and top_kda > 6):
+            postive = True
+        elif (win and top_kda < 4) or (not win and top_kda < 2):
+            postive = False
+        else:
+            # 如果并不满足以上条件，随机选择正面或负面
+            postive = (random.randint(0, 1) == 1)
+    return postive
+    

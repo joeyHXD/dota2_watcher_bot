@@ -1,11 +1,65 @@
 import json
-from config import player_info_file_path
-from player import Player
-
+import os
+from .player import Player
 
 class DOTA2HTTPError(Exception):
     pass
 
+# 加载配置文件
+config_path = "./hoshino/modules/dota2_watcher_bot/config.py"
+config = Config(config_path)
+
+class Config:
+    def __init__(self, config_path):
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(
+                "DOTA2_WATCHER_BOT: config.py not found. Please create config.py based on README and default_config.py."
+            )
+        else:
+            from hoshino.modules.dota2_watcher_bot.config import (
+                api_key,
+                proxies,
+                timeout,
+                player_info_file_path,
+                all_nickname,
+                game_mode,
+                benchmark_threshold
+            )
+            self._api_key = api_key
+            self._proxies = proxies
+            self._timeout = timeout
+            self._player_info_file_path = player_info_file_path
+            self._all_nickname = all_nickname
+            self._game_mode = game_mode
+            self._benchmark_threshold = benchmark_threshold
+
+    @property
+    def api_key(self):
+        return self._api_key
+
+    @property
+    def proxies(self):
+        return self._proxies
+
+    @property
+    def timeout(self):
+        return self._timeout
+
+    @property
+    def player_info_file_path(self):
+        return self._player_info_file_path
+
+    @property
+    def all_nickname(self):
+        return self._all_nickname
+
+    @property
+    def game_mode(self):
+        return self._game_mode
+
+    @property
+    def benchmark_threshold(self):
+        return self._benchmark_threshold
 
 def prompt_error(response, url):
     if response.status_code >= 400:
@@ -23,8 +77,14 @@ def load_from_json():
     }
     """
     data = {}
-    
-    with open(player_info_file_path, encoding="utf-8") as file:
+
+    if not os.path.exists(player_info_file_path):
+        # Create an empty playerInfo.json if it doesn't exist
+        with open(player_info_file_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file)
+
+    # Open and read the file
+    with open(player_info_file_path, 'r', encoding='utf-8') as file:
         tmp = json.load(file)
 
     # 从json文件中读取数据，转换成Player对象

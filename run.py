@@ -2,19 +2,19 @@ from .player import Player
 from . import DOTA2
 from hoshino import Service, priv, aiorequests
 from .text2img import image_draw
-from .config import (
-    api_key, 
-    proxies, 
-    timeout, 
-    all_nickname
-)
 from .utils import (
+    config,
     DOTA2HTTPError,
     prompt_error,
     load_from_json,
     save_to_json
 )
 
+# 报错请检查是否配置了config.py
+api_key = config.api_key
+proxies = config.proxies
+timeout = config.timeout
+all_nickname = config.all_nickname
 
 sv = Service(
             'dota-poller2',
@@ -77,24 +77,15 @@ async def update():
         messages = []
         for match_id, match_player_list in result.items():
             try:
-                url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/' \
-                  '?key={}&match_id={}'.format(api_key, match_id)
-                try:
-                    response = await aiorequests.get(url, timeout=timeout, proxies=proxies)
-                except Exception as e:
-                    sv.logger.exception("20秒内无法连接到网站，建议检查网络，或者尝试使用代理服务器")
-                    raise e
-                prompt_error(response, url)
-                match = await response.json()
-                try:
-                    match_info = match["result"]
-                except KeyError:
-                    raise DOTA2HTTPError("Response Error: Key Error")
-                except IndexError:
-                    raise DOTA2HTTPError("Response Error: Index Error")
-            except DOTA2HTTPError:
-                raise DOTA2HTTPError("DOTA2开黑战报生成失败")
-            txt = DOTA2.generate_message(match_info, match_player_list)
+                match_info = await DOTA2.request_match_info_opendota(match_id)
+                # match_info = await DOTA2.request_match_info_steam(match_id, api_key)
+            except Exception as e:
+                sv.logger.exception(e)
+                continue
+            if match_info:
+                txt = DOTA2.generate_message(match_info, match_player_list)
+            else:
+                continue
             if txt:
                 messages.append(txt)
         if messages:
