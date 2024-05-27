@@ -67,7 +67,7 @@ def generate_message(match_info, player_list):
 
     for player in player_list:
         nickname = player.nickname
-        kill, death, assist, kda, dota2_team, hero, last_hit, damage, gpm, xpm = player.stats.values()
+        kill, death, assist, kda, dota2_team, hero, last_hit, damage, gpm, xpm, benchmark = player.stats.values()
         #以后出新英雄就把编号名字加进dict里，这序号貌似有时还会变，如果出了变化麻烦提issue或者PR，毕竟本人玩的英雄很少
         hero = HEROES_LIST_CHINESE.get(hero, f"{hero}不知道什么鬼")
         damage_rate = 0 if team_damage == 0 else (100 * (float(damage) / team_damage))
