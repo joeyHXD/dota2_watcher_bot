@@ -9,6 +9,7 @@ from .utils import (
     load_from_json,
     save_to_json
 )
+from .request_match_info import request_match_info_opendota
 
 # 报错请检查是否配置了config.py
 api_key = config.api_key
@@ -77,7 +78,7 @@ async def update():
         messages = []
         for match_id, match_player_list in result.items():
             try:
-                match_info = await DOTA2.request_match_info_opendota(match_id)
+                match_info = await request_match_info_opendota(match_id)
                 # match_info = await DOTA2.request_match_info_steam(match_id, api_key)
             except Exception as e:
                 sv.logger.exception(e)

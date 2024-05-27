@@ -95,6 +95,7 @@ def load_from_json():
             player = Player()
             player.load_dict(info)
             data[gid].append(player)
+    return data
 
 
 def save_to_json(data):
