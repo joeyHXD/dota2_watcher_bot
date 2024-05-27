@@ -3,6 +3,7 @@ class Player:
         self.short_steamID = short_steamID
         self.nickname = nickname
         self.last_DOTA2_match_ID = last_DOTA2_match_ID
+        self.display_recent_match = True
         self.stats = {}
 
     def to_dict(self):
@@ -10,12 +11,14 @@ class Player:
         output["short_steamID"] = self.short_steamID
         output["nickname"] = self.nickname
         output["last_DOTA2_match_ID"] = self.last_DOTA2_match_ID
+        output["display_recent_match"] = self.display_recent_match
         return output
 
     def load_dict(self, d):
         self.short_steamID = d["short_steamID"]
         self.nickname = d["nickname"]
         self.last_DOTA2_match_ID = d["last_DOTA2_match_ID"]
+        self.display_recent_match = d.get("display_recent_match", True)
 
     def load_player_info(self, player_game_info):
         tmp = {}
