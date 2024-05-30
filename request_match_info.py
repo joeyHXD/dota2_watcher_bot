@@ -19,7 +19,7 @@ async def request_match_history(player, api_key):
     except:
         raise DOTA2HTTPError(f"{timeout}秒内无法连接到网站，建议检查网络，或者尝试使用代理服务器")
     prompt_error(response, url)
-    match = response.json()
+    match = await response.json()
     if match["result"]["status"] == 15:
         raise DOTA2HTTPError(f"{player.nickname}的战绩被隐藏了,无法获取")
     try:
@@ -43,7 +43,7 @@ async def request_match_info_steam(match_id, api_key):
     prompt_error(response, url)
     # 7.36 版本后，此API无法获取到比赛结果，需要使用openDota的API
     try:
-        match = response.json()
+        match = await response.json()
         match_info = match.get("result", None)
     except:
         raise DOTA2HTTPError("DOTA2开黑战报生成失败")
