@@ -15,7 +15,7 @@ class Config:
                 "DOTA2_WATCHER_BOT: config.py not found. Please create config.py based on README and default_config.py."
             )
         else:
-            from hoshino.modules.dota2_watcher_bot.config import (
+            from .config import (
                 api_key,
                 proxies,
                 timeout,

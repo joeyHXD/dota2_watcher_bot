@@ -35,20 +35,21 @@ def generate_message(match_info, player_list):
     team_damage = sum([player["hero_damage"] for player in teammates_info])
     team_kills = sum([player["kills"] for player in teammates_info])
     team_deaths = sum([player["deaths"] for player in teammates_info])
-
+    # 比赛结果
     win = False
     if match_info['radiant_win'] and team == 0:
         win = True
     elif not match_info['radiant_win'] and team == 1:
         win = True
+    # 合并玩家昵称
     if len(player_list) == 1:
         nicknames = player_list[0].nickname
     else:
         nicknames = ', '.join([player.nickname for player in player_list[:-1]])
         nicknames = '和'.join([nicknames, player_list[-1].nickname])
-
-    postive = check_performance(player_list)
-
+    # 验证战绩为正面还是负面
+    postive = check_performance(player_list, win)
+    # 生成战报
     print_str = ''
     if win and postive:
         print_str += random.choice(WIN_POSTIVE).format(nicknames) + '\n'
@@ -86,7 +87,7 @@ def generate_message(match_info, player_list):
 
     return(print_str)
 
-def check_performance(player_list):
+def check_performance(player_list, win=None):
     # 验证战绩为正面还是负面
 
     benchmark = player_list[0].stats["benchmarks"]

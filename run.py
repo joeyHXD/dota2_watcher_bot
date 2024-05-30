@@ -1,15 +1,13 @@
 from .player import Player
 from . import DOTA2
-from hoshino import Service, priv, aiorequests
+from hoshino import Service, priv
 from .text2img import image_draw
 from .utils import (
     config,
-    DOTA2HTTPError,
-    prompt_error,
     load_from_json,
     save_to_json
 )
-from .request_match_info import request_match_info_opendota
+from .request_match_info import request_match_info_opendota, request_match_history
 
 # 报错请检查是否配置了config.py
 api_key = config.api_key
@@ -29,7 +27,7 @@ bot = sv.bot
 data = load_from_json()
 
 
-@sv.scheduled_job('interval', seconds=60)
+@sv.scheduled_job('interval', seconds=120)
 async def update():
     sv.logger.info("updating")
     for gid, player_list in data.items():
@@ -46,48 +44,33 @@ async def update():
             if not player.display_recent_match:
                 # 不显示比赛
                 continue
-            short_steamID = player.short_steamID
             try:
-                url = 'https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/v001/?key={}' \
-                  '&account_id={}&matches_requested=1'.format(api_key, short_steamID)
-                try:
-                    response = await aiorequests.get(url, timeout=timeout, proxies=proxies)
-                except Exception as e:
-                    sv.logger.exception(f"{timeout}秒内无法连接到网站，建议检查网络，或者尝试使用代理服务器")
-                    raise e
-                prompt_error(response, url)
-                match = await response.json()
-                if match["result"]["status"] == 15:
-                    sv.logger.exception(f"{player.nickname}的战绩被隐藏了,无法获取")
-                    continue
-                try:
-                    match_id = match["result"]["matches"][0]["match_id"]
-                except Exception as e:
-                    sv.logger.exception(e)
-                if match_id != player.last_DOTA2_match_ID:
-                    if match_id not in result:
-                        result[match_id] = [player]
-                    else:
-                        result[match_id].append(player)
-                    player.last_DOTA2_match_ID = match_id
-            except DOTA2HTTPError as e:
-                sv.logger.exception(e)
-                continue
+                # 获取最近一场比赛的ID
+                match_id = await request_match_history(player, api_key)
             except Exception as e:
                 sv.logger.exception(e)
+                continue
+            if match_id != player.last_DOTA2_match_ID:
+                # 如果有新比赛，加入到result
+                if match_id not in result:
+                    result[match_id] = [player]
+                else:
+                    result[match_id].append(player)
+                # player.last_DOTA2_match_ID = match_id
         messages = []
         for match_id, match_player_list in result.items():
             try:
+                # 获取比赛信息
                 match_info = await request_match_info_opendota(match_id)
                 # match_info = await DOTA2.request_match_info_steam(match_id, api_key)
             except Exception as e:
                 sv.logger.exception(e)
                 continue
             if match_info:
+                for player in match_player_list:
+                    # 更新last_DOTA2_match_ID
+                    player.last_DOTA2_match_ID = match_id
                 txt = DOTA2.generate_message(match_info, match_player_list)
-            else:
-                continue
-            if txt:
                 messages.append(txt)
         if messages:
             data[gid] = player_list
@@ -98,7 +81,7 @@ async def update():
                     await bot.send_group_msg(group_id=gid, message=f'[CQ:image,file={pic}]')
                 except:
                     sv.logger.info(f"临时会话图片发送失败")
-                    await bot.send_group_msg(group_id=gid, message="图片发送失败")
+                    # await bot.send_group_msg(group_id=gid, message="图片发送失败")
                     await bot.send_group_msg(group_id=gid, message=msg)
     save_to_json(data)
     sv.logger.info("done")
