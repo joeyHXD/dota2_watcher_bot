@@ -99,7 +99,7 @@ def check_performance(player_list, win=None):
         for player in player_list:
             benchmarks = player.stats["benchmarks"]
             # pct is between 0 and 1
-            benchmark_pcts = [value["raw"] for value in benchmarks.values()]
+            benchmark_pcts = [value["pct"] for value in benchmarks.values()]
             average_pcts = sum(benchmark_pcts) / len(benchmark_pcts)
             total_avg_pct += average_pcts
         if total_avg_pct / len(player_list) > benchmark_threshold:
