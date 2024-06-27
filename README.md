@@ -44,7 +44,6 @@ openDota免费版每日请求数限制2,000次，不需要API key
 - 开启XX的群播报:
     - 同上 `开启[玩家昵称]的群播报`
 
-
 ## 运行效果
 具体可以看 https://github.com/greenhaha/dota2_csgo_watcher_bot
 
